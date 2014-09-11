@@ -9,9 +9,11 @@ snd-soc-hifiberry-dacplus-objs := hifiberry_dacplus.o
 snd-soc-hifiberry-digi-objs := hifiberry_digi.o
 snd-soc-rpi-dac-objs := rpi-dac.o
 snd-soc-iqaudio-dac-objs := iqaudio-dac.o
+snd-soc-tas5711-ev-board-objs := tas5711_ev-board.o
 
 obj-$(CONFIG_SND_BCM2708_SOC_HIFIBERRY_DAC) += snd-soc-hifiberry-dac.o
 obj-$(CONFIG_SND_BCM2708_SOC_HIFIBERRY_DACPLUS) += snd-soc-hifiberry-dacplus.o
 obj-$(CONFIG_SND_BCM2708_SOC_HIFIBERRY_DIGI) += snd-soc-hifiberry-digi.o
 obj-$(CONFIG_SND_BCM2708_SOC_RPI_DAC) += snd-soc-rpi-dac.o
 obj-$(CONFIG_SND_BCM2708_SOC_IQAUDIO_DAC) += snd-soc-iqaudio-dac.o
+obj-$(CONFIG_SND_BCM2708_SOC_TAS5711_EVB) += snd-soc-tas5711.o

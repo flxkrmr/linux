@@ -43,3 +43,10 @@ config SND_BCM2708_SOC_IQAUDIO_DAC
 	select SND_SOC_PCM512x
 	help
 	  Say Y or M if you want to add support for IQaudIO-DAC.
+
+config SND_BCM2708_SOC_TAS5711_EVB
+	tristate "Support for TI TAS5711 Evaluation Board"
+	depends on SND_BCM2708_SOC_I2S
+	select SND_SOC_TAS5711
+	help
+	  Say Y or M if you want to add support for TI TAS5711 Evaluation Board.
