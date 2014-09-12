@@ -26,6 +26,7 @@
 
 static int snd_rpi_tas5711_evb_init(struct snd_soc_pcm_runtime *rtd)
 {
+	printk("+++++++++++initialized tas5711 evaluation board driver++++++++++++\n");
 	return 0;
 }
 
@@ -74,8 +75,10 @@ static int snd_rpi_tas5711_evb_probe(struct platform_device *pdev)
 
 	snd_rpi_tas5711_evb.dev = &pdev->dev;
 	ret = snd_soc_register_card(&snd_rpi_tas5711_evb);
-	if (ret)
+	if (ret) {
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n", ret);
+		printk("snd_soc_register_card() failed with code %d\n", ret);
+	}
 
 	return ret;
 }

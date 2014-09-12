@@ -25,6 +25,7 @@
 
 static int snd_rpi_hifiberry_dac_init(struct snd_soc_pcm_runtime *rtd)
 {
+	printk("++++++++++initialized hifiberry dac+++++++++++\n");
 	return 0;
 }
 
