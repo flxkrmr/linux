@@ -111,6 +111,7 @@
 /*
  * Default TAS5711 power-up configuration
  */
+
 static const struct reg_default tas5711_reg_defaults[] = {
 	{ 0x00,	0x6c },
 	{ 0x01,	0x70 },
@@ -761,6 +762,7 @@ static const int tas5711_start_stop_period[] = {
 
 static int tas5711_probe(struct snd_soc_codec *codec)
 {
+	printk("++++++++++++++++++int tas5711 probe()++++++++++++++++++++\n");
 	struct tas5711_private *priv = snd_soc_codec_get_drvdata(codec);
 	int start_stop_period = 125700; /* hardware default is 125,70 ms */
 	u8 pwm_start_mid_z = 0;
@@ -887,6 +889,7 @@ static const struct regmap_config tas5711_regmap = {
 static int tas5711_i2c_probe(struct i2c_client *i2c,
 			     const struct i2c_device_id *id)
 {
+	printk("+++++++++++++++++++int i2c probe+++++++++++++++++++++\n");
 	struct tas5711_private *priv;
 	struct device *dev = &i2c->dev;
 	int gpio_nreset = -EINVAL;

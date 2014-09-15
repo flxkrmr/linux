@@ -37,6 +37,7 @@ static struct snd_soc_codec_driver soc_codec_dev_pcm5102a;
 
 static int pcm5102a_probe(struct platform_device *pdev)
 {
+	printk("in pcm5102a_probe()\ndoing snd_soc_register_codec() now\n");
 	return snd_soc_register_codec(&pdev->dev, &soc_codec_dev_pcm5102a,
 			&pcm5102a_dai, 1);
 }
