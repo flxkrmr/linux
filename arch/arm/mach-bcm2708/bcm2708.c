@@ -681,6 +681,30 @@ static struct platform_device snd_pcm5102a_codec_device = {
 };
 #endif
 
+#if defined(CONFIG_SND_BCM2708_SOC_TAS5711_EVB) || defined(CONFIG_SND_BCM2708_SOC_TAS5711_EVB_MODULE)
+// TODO find CONFIG_SND_BCM2708_SOC_TAS5711_EVB_MODULE
+static struct platform_device snd_tas5711_evb_device = {
+        .name = "snd-tas5711-evb",
+        .id = 0,
+        .num_resources = 0,
+};
+
+#if 0
+//TODO change to tas5711 codec. use i2c driver
+static struct i2c_board_info __initdata snd_pcm512x_hbdacplus_i2c_devices[] = {
+        {
+                I2C_BOARD_INFO("pcm5122", 0x4d)
+        },
+};
+#endif
+
+static struct platform_device snd_pcm5102a_codec_tas_device = {
+        .name = "pcm5102a-codec",
+        .id = -1,
+        .num_resources = 0,
+};
+#endif
+
 #if defined(CONFIG_SND_BCM2708_SOC_HIFIBERRY_DACPLUS) || defined(CONFIG_SND_BCM2708_SOC_HIFIBERRY_DACPLUS_MODULE)
 static struct platform_device snd_rpi_hifiberry_dacplus_device = {
         .name = "snd-rpi-hifiberry-dacplus",
@@ -882,6 +906,11 @@ void __init bcm2708_init(void)
 #if defined(CONFIG_SND_BCM2708_SOC_HIFIBERRY_DAC) || defined(CONFIG_SND_BCM2708_SOC_HIFIBERRY_DAC_MODULE)
         bcm_register_device(&snd_hifiberry_dac_device);
         bcm_register_device(&snd_pcm5102a_codec_device);
+#endif
+
+#if defined(CONFIG_SND_BCM2708_SOC_TAS5711_EVB) || defined(CONFIG_SND_BCM2708_SOC_TAS5711_EVB_MODULE)
+        bcm_register_device(&snd_tas5711_evb_device);
+        bcm_register_device(&snd_pcm5102a_codec_tas_device);
 #endif
 
 #if defined(CONFIG_SND_BCM2708_SOC_HIFIBERRY_DACPLUS) || defined(CONFIG_SND_BCM2708_SOC_HIFIBERRY_DACPLUS_MODULE)

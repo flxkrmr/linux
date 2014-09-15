@@ -3,9 +3,9 @@
 echo "Started installing Modules on Raspberry Pi SD Card"
 
 #take time
-export TIME_S=$(date +"%S")
-export TIME_M=$(date +"%M")
-export TIME_I=$(date +"%I")
+#export TIME_S=$(date +"%S")
+#export TIME_M=$(date +"%M")
+#export TIME_I=$(date +"%I")
 
 export FAT32_DIR=~/fat32
 export EXT4_DIR=~/ext4
@@ -35,8 +35,8 @@ umount $EXT4_DIR
 rmdir $FAT32_DIR
 rmdir $EXT4_DIR
 
-export TIME_S_TOTAL=$(($(date +"%S") - $TIME_S))
-export TIME_M_TOTAL=$(($(date +"%M") - $TIME_M))
-export TIME_I_TOTAL=$(($(date +"%I") - $TIME_I))
+#export TIME_S_TOTAL=$(($(date +"%S") - $TIME_S))
+#export TIME_M_TOTAL=$(($(date +"%M") - $TIME_M))
+#export TIME_I_TOTAL=$(($(date +"%I") - $TIME_I))
 
-echo "Total Duration: " $TIME_I_TOTAL:$TIME_M_TOTAL:$TIME_I_TOTAL
+#echo "Total Duration: " $TIME_I_TOTAL:$TIME_M_TOTAL:$TIME_I_TOTAL
