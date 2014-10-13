@@ -394,7 +394,8 @@ static int bcm2708_i2s_hw_params(struct snd_pcm_substream *substream,
 	 * the registers are already set properly.
 	 */
 	regmap_read(dev->i2s_regmap, BCM2708_I2S_CS_A_REG, &csreg);
-
+	
+	// TXON and RXON enabled
 	if (csreg & (BCM2708_I2S_TXON | BCM2708_I2S_RXON))
 		return 0;
 
@@ -450,6 +451,14 @@ static int bcm2708_i2s_hw_params(struct snd_pcm_substream *substream,
 	 * variance. To minimize that it is best to have the fastest
 	 * clock here. That is PLLD with 500 MHz.
 	 */
+
+	//TODO test if bclk_ratio is overwritten
+	//     look for new bugs
+
+	//XXX 
+	/* every frame needs to be 32 bit long */
+	bclk_ratio = 64;
+
 	target_frequency = sampling_rate * bclk_ratio;
 	clk_src = BCM2708_CLK_SRC_OSC;
 	mash = BCM2708_CLK_MASH_0;
@@ -481,6 +490,10 @@ static int bcm2708_i2s_hw_params(struct snd_pcm_substream *substream,
 		divi = dividend >> BCM2708_CLK_SHIFT;
 		divf = dividend & BCM2708_CLK_DIVF_MASK;
 	}
+	
+	//XXX
+	printk("bclk_ratio: %d\nsampling_rate: %d\ntarget_freq: %d\n", bclk_ratio, sampling_rate, target_frequency);
+	printk("divi: %d\tdivf: %d\n", divi, divf);	
 
 	/* Set clock divider */
 	regmap_write(dev->clk_regmap, BCM2708_CLK_PCMDIV_REG, BCM2708_CLK_PASSWD
@@ -494,6 +507,9 @@ static int bcm2708_i2s_hw_params(struct snd_pcm_substream *substream,
 
 	/* Setup the frame format */
 	format = BCM2708_I2S_CHEN;
+
+	// XXX always 32 bit width
+	//data_length = 32;
 
 	if (data_length >= 24)
 		format |= BCM2708_I2S_CHWEX;
@@ -548,9 +564,14 @@ static int bcm2708_i2s_hw_params(struct snd_pcm_substream *substream,
 		mode |= BCM2708_I2S_FTXP | BCM2708_I2S_FRXP;
 	}
 
+#if 1
 	mode |= BCM2708_I2S_FLEN(bclk_ratio - 1);
 	mode |= BCM2708_I2S_FSLEN(bclk_ratio / 2);
-
+#else
+	//XXX
+	mode |= BCM2708_I2S_FLEN(63);
+	mode |= BCM2708_I2S_FSLEN(32);
+#endif
 	/* Master or slave? */
 	switch (dev->fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBS_CFS:
