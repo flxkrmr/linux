@@ -1,4 +1,4 @@
-/*
+/* 
  * ASoC Driver for TI TAS5711 Evaluation Board
  *
  * Author: Felix Kramer <felixkramerroki@aol.com>
@@ -38,7 +38,7 @@ static int snd_rpi_tas5711_evb_hw_params(struct snd_pcm_substream *substream,
 
 	unsigned int sample_bits =
 		snd_pcm_format_physical_width(params_format(params));
-
+	//TODO change bclk here??
 	return snd_soc_dai_set_bclk_ratio(cpu_dai, sample_bits * 2);
 }
 
@@ -54,7 +54,8 @@ static struct snd_soc_dai_link snd_rpi_tas5711_evb_dai[] = {
 	.cpu_dai_name	= "bcm2708-i2s.0",
 	.codec_dai_name	= "tas5711-hifi", 
 	.platform_name	= "bcm2708-i2s.0",
-	.codec_name	= "tas5711-codec",
+	.codec_name	= "tas5711.1-001b",
+	//.codec_name	= "tas5711.1-0034",
 	.dai_fmt	= SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
 				SND_SOC_DAIFMT_CBS_CFS,
 	.ops		= &snd_rpi_tas5711_evb_ops,
@@ -77,7 +78,6 @@ static int snd_rpi_tas5711_evb_probe(struct platform_device *pdev)
 	ret = snd_soc_register_card(&snd_rpi_tas5711_evb);
 	if (ret) {
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n", ret);
-		printk("snd_soc_register_card() failed with code %d\n", ret);
 	}
 
 	return ret;

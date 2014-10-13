@@ -120,34 +120,25 @@ static const struct reg_default tas5711_reg_defaults[] = {
 	{ 0x04,	0x05 },
 	{ 0x05,	0x40 },
 	{ 0x06,	0x00 },
-	{ 0x07,	0xff },
+	{ 0x07,	0xFF },
 	{ 0x08,	0x30 },
 	{ 0x09,	0x30 },
 	{ 0x0a,	0x30 },
-	{ 0x0b,	0x00 },
-	{ 0x0c,	0x00 },
-	{ 0x0d,	0x00 },
 	{ 0x0e,	0x91 },
-	{ 0x0f,	0x00 },
 	{ 0x10,	0x02 },
 	{ 0x11,	0xAC },
 	{ 0x12,	0x54 },
 	{ 0x13,	0xAC },
 	{ 0x14,	0x54 },
-	{ 0x15,	0x00 },
-	{ 0x16,	0x00 },
-	{ 0x17,	0x00 },
-	{ 0x18,	0x00 },
 	{ 0x19,	0x30 },
 	{ 0x1A,	0x0F },
 	{ 0x1B,	0x82 },
 	{ 0x1C,	0x02 },
-	{ 0x1D,	0x00 },
-	{ 0x1E,	0x00 },
-	{ 0x1F,	0x00 },
-	{ 0x1C,	0x02 },
-	{ 0x1C,	0x02 },
-	{ 0x1C,	0x02 },
+	{ 0x20,	0x00017772 },
+	{ 0x21,	0x00004303 },
+	{ 0x25,	0x01021345 },
+	{ 0x46,	0x00000000 },
+	{ 0x50,	0x0F708000 },
 };
 
 static int tas5711_register_size(struct device *dev, unsigned int reg)
@@ -462,6 +453,8 @@ static int tas5711_hw_params(struct snd_pcm_substream *substream,
 	 *
 	 * First, determine the 'base' value, using the format ...
 	 */
+// XXX we use the default format for now
+#if 0 
 	switch (priv->format & SND_SOC_DAIFMT_FORMAT_MASK) {
 		case SND_SOC_DAIFMT_RIGHT_J:
 			val = 0x00;
@@ -481,7 +474,7 @@ static int tas5711_hw_params(struct snd_pcm_substream *substream,
 	switch (params_format(params)) {
         case SNDRV_PCM_FORMAT_S16_LE:
 			val += 0;
-					break;
+			break;
 		case SNDRV_PCM_FORMAT_S20_3LE:
 			val += 1;
 			break;
@@ -496,7 +489,7 @@ static int tas5711_hw_params(struct snd_pcm_substream *substream,
 	ret = regmap_write(priv->regmap, TAS5711_SERIAL_DATA_IF, val);
 	if (ret < 0)
 		return ret;
-
+#endif
 #if 0
 	/* clock is considered valid now */
 	ret = regmap_update_bits(priv->regmap, TAS5711_CLOCK_CONTROL,
@@ -534,6 +527,11 @@ static const DECLARE_TLV_DB_SCALE(tas5711_dac_tlv, -10350, 50, 1);
 static const struct snd_kcontrol_new tas5711_controls[] = {
 	SOC_SINGLE_TLV("Master Playback Volume", TAS5711_MASTER_VOL,
 		       0, 0xff, 1, tas5711_dac_tlv),
+	SOC_SINGLE_TLV("Channel 1 Volume", TAS5711_CHANNEL_VOL(0),
+		       0, 0xff, 1, tas5711_dac_tlv),
+	SOC_SINGLE_TLV("Channel 2 Volume", TAS5711_CHANNEL_VOL(1),
+		       0, 0xff, 1, tas5711_dac_tlv),
+#if 0
 	SOC_DOUBLE_R_TLV("Channel 1/2 Playback Volume",
 			 TAS5711_CHANNEL_VOL(0), TAS5711_CHANNEL_VOL(1),
 			 0, 0xff, 1, tas5711_dac_tlv),
@@ -542,6 +540,7 @@ static const struct snd_kcontrol_new tas5711_controls[] = {
 			 0, 0xff, 1, tas5711_dac_tlv),
 	SOC_SINGLE_BOOL_EXT("De-emphasis Switch", 0,
 			    tas5711_get_deemph, tas5711_put_deemph),
+#endif
 };
 
 /* Input mux controls */
@@ -610,105 +609,57 @@ static const struct snd_soc_dapm_widget tas5711_dapm_widgets[] = {
 
 static const struct snd_soc_dapm_route tas5711_dapm_routes[] = {
 	/* SDIN inputs -> channel muxes */
-	{ "Channel 1 Mux", "SDIN1-L", "SDIN1-L" },
-	{ "Channel 1 Mux", "SDIN1-R", "SDIN1-R" },
-	{ "Channel 1 Mux", "SDIN2-L", "SDIN2-L" },
-	{ "Channel 1 Mux", "SDIN2-R", "SDIN2-R" },
-	{ "Channel 1 Mux", "SDIN3-L", "SDIN3-L" },
-	{ "Channel 1 Mux", "SDIN3-R", "SDIN3-R" },
+	{ "Channel 1 Mux", "SDIN-L", "SDIN-L" },
+	{ "Channel 1 Mux", "SDIN-R", "SDIN-R" },
 
-	{ "Channel 2 Mux", "SDIN1-L", "SDIN1-L" },
-	{ "Channel 2 Mux", "SDIN1-R", "SDIN1-R" },
-	{ "Channel 2 Mux", "SDIN2-L", "SDIN2-L" },
-	{ "Channel 2 Mux", "SDIN2-R", "SDIN2-R" },
-	{ "Channel 2 Mux", "SDIN3-L", "SDIN3-L" },
-	{ "Channel 2 Mux", "SDIN3-R", "SDIN3-R" },
+	{ "Channel 2 Mux", "SDIN-L", "SDIN-L" },
+	{ "Channel 2 Mux", "SDIN-R", "SDIN-R" },
 
-	{ "Channel 2 Mux", "SDIN1-L", "SDIN1-L" },
-	{ "Channel 2 Mux", "SDIN1-R", "SDIN1-R" },
-	{ "Channel 2 Mux", "SDIN2-L", "SDIN2-L" },
-	{ "Channel 2 Mux", "SDIN2-R", "SDIN2-R" },
-	{ "Channel 2 Mux", "SDIN3-L", "SDIN3-L" },
-	{ "Channel 2 Mux", "SDIN3-R", "SDIN3-R" },
+	{ "Channel 2 Mux", "SDIN-L", "SDIN-L" },
+	{ "Channel 2 Mux", "SDIN-R", "SDIN-R" },
 
-	{ "Channel 3 Mux", "SDIN1-L", "SDIN1-L" },
-	{ "Channel 3 Mux", "SDIN1-R", "SDIN1-R" },
-	{ "Channel 3 Mux", "SDIN2-L", "SDIN2-L" },
-	{ "Channel 3 Mux", "SDIN2-R", "SDIN2-R" },
-	{ "Channel 3 Mux", "SDIN3-L", "SDIN3-L" },
-	{ "Channel 3 Mux", "SDIN3-R", "SDIN3-R" },
+	{ "Channel 3 Mux", "SDIN-L", "SDIN-L" },
+	{ "Channel 3 Mux", "SDIN-R", "SDIN-R" },
 
-	{ "Channel 4 Mux", "SDIN1-L", "SDIN1-L" },
-	{ "Channel 4 Mux", "SDIN1-R", "SDIN1-R" },
-	{ "Channel 4 Mux", "SDIN2-L", "SDIN2-L" },
-	{ "Channel 4 Mux", "SDIN2-R", "SDIN2-R" },
-	{ "Channel 4 Mux", "SDIN3-L", "SDIN3-L" },
-	{ "Channel 4 Mux", "SDIN3-R", "SDIN3-R" },
+	{ "Channel 4 Mux", "SDIN-L", "SDIN-L" },
+	{ "Channel 4 Mux", "SDIN-R", "SDIN-R" },
 
-	{ "Channel 5 Mux", "SDIN1-L", "SDIN1-L" },
-	{ "Channel 5 Mux", "SDIN1-R", "SDIN1-R" },
-	{ "Channel 5 Mux", "SDIN2-L", "SDIN2-L" },
-	{ "Channel 5 Mux", "SDIN2-R", "SDIN2-R" },
-	{ "Channel 5 Mux", "SDIN3-L", "SDIN3-L" },
-	{ "Channel 5 Mux", "SDIN3-R", "SDIN3-R" },
+	{ "Channel 5 Mux", "SDIN-L", "SDIN-L" },
+	{ "Channel 5 Mux", "SDIN-R", "SDIN-R" },
 
-	{ "Channel 6 Mux", "SDIN1-L", "SDIN1-L" },
-	{ "Channel 6 Mux", "SDIN1-R", "SDIN1-R" },
-	{ "Channel 6 Mux", "SDIN2-L", "SDIN2-L" },
-	{ "Channel 6 Mux", "SDIN2-R", "SDIN2-R" },
-	{ "Channel 6 Mux", "SDIN3-L", "SDIN3-L" },
-	{ "Channel 6 Mux", "SDIN3-R", "SDIN3-R" },
+	{ "Channel 6 Mux", "SDIN-L", "SDIN-L" },
+	{ "Channel 6 Mux", "SDIN-R", "SDIN-R" },
 
 	/* Channel muxes -> PWM muxes */
 	{ "PWM1 Mux", "Channel 1 Mux", "Channel 1 Mux" },
 	{ "PWM2 Mux", "Channel 1 Mux", "Channel 1 Mux" },
 	{ "PWM3 Mux", "Channel 1 Mux", "Channel 1 Mux" },
 	{ "PWM4 Mux", "Channel 1 Mux", "Channel 1 Mux" },
-	{ "PWM5 Mux", "Channel 1 Mux", "Channel 1 Mux" },
-	{ "PWM6 Mux", "Channel 1 Mux", "Channel 1 Mux" },
 
 	{ "PWM1 Mux", "Channel 2 Mux", "Channel 2 Mux" },
 	{ "PWM2 Mux", "Channel 2 Mux", "Channel 2 Mux" },
 	{ "PWM3 Mux", "Channel 2 Mux", "Channel 2 Mux" },
 	{ "PWM4 Mux", "Channel 2 Mux", "Channel 2 Mux" },
-	{ "PWM5 Mux", "Channel 2 Mux", "Channel 2 Mux" },
-	{ "PWM6 Mux", "Channel 2 Mux", "Channel 2 Mux" },
 
 	{ "PWM1 Mux", "Channel 3 Mux", "Channel 3 Mux" },
 	{ "PWM2 Mux", "Channel 3 Mux", "Channel 3 Mux" },
 	{ "PWM3 Mux", "Channel 3 Mux", "Channel 3 Mux" },
 	{ "PWM4 Mux", "Channel 3 Mux", "Channel 3 Mux" },
-	{ "PWM5 Mux", "Channel 3 Mux", "Channel 3 Mux" },
-	{ "PWM6 Mux", "Channel 3 Mux", "Channel 3 Mux" },
 
 	{ "PWM1 Mux", "Channel 4 Mux", "Channel 4 Mux" },
 	{ "PWM2 Mux", "Channel 4 Mux", "Channel 4 Mux" },
 	{ "PWM3 Mux", "Channel 4 Mux", "Channel 4 Mux" },
 	{ "PWM4 Mux", "Channel 4 Mux", "Channel 4 Mux" },
-	{ "PWM5 Mux", "Channel 4 Mux", "Channel 4 Mux" },
-	{ "PWM6 Mux", "Channel 4 Mux", "Channel 4 Mux" },
 
 	{ "PWM1 Mux", "Channel 5 Mux", "Channel 5 Mux" },
 	{ "PWM2 Mux", "Channel 5 Mux", "Channel 5 Mux" },
 	{ "PWM3 Mux", "Channel 5 Mux", "Channel 5 Mux" },
 	{ "PWM4 Mux", "Channel 5 Mux", "Channel 5 Mux" },
-	{ "PWM5 Mux", "Channel 5 Mux", "Channel 5 Mux" },
-	{ "PWM6 Mux", "Channel 5 Mux", "Channel 5 Mux" },
 
 	{ "PWM1 Mux", "Channel 6 Mux", "Channel 6 Mux" },
 	{ "PWM2 Mux", "Channel 6 Mux", "Channel 6 Mux" },
 	{ "PWM3 Mux", "Channel 6 Mux", "Channel 6 Mux" },
 	{ "PWM4 Mux", "Channel 6 Mux", "Channel 6 Mux" },
-	{ "PWM5 Mux", "Channel 6 Mux", "Channel 6 Mux" },
-	{ "PWM6 Mux", "Channel 6 Mux", "Channel 6 Mux" },
-
-	/* The PWM muxes are directly connected to the PWM outputs */
-	{ "PWM1", NULL, "PWM1 Mux" },
-	{ "PWM2", NULL, "PWM2 Mux" },
-	{ "PWM3", NULL, "PWM3 Mux" },
-	{ "PWM4", NULL, "PWM4 Mux" },
-	{ "PWM5", NULL, "PWM5 Mux" },
-	{ "PWM6", NULL, "PWM6 Mux" },
 
 };
 
@@ -768,6 +719,7 @@ static int tas5711_probe(struct snd_soc_codec *codec)
 	u8 pwm_start_mid_z = 0;
 	int i, ret;
 
+	//TODO what does this???
 	if (of_match_device(of_match_ptr(tas5711_dt_ids), codec->dev)) {
 		struct device_node *of_node = codec->dev->of_node;
 		//TODO "ti,start-stop-period" ????
@@ -786,6 +738,8 @@ static int tas5711_probe(struct snd_soc_codec *codec)
 		
 #endif
 	}
+	else
+		printk("of_match_device() == false\n");
 #if 0
 	/*
 	 * If any of the channels is configured to start in Mid-Z mode,
@@ -818,11 +772,13 @@ static int tas5711_probe(struct snd_soc_codec *codec)
 	ret = regmap_update_bits(priv->regmap, TAS5711_OSC_TRIM, 
 						TAS5711_OSC_TRIM_VAL(0), 
 						TAS5711_OSC_TRIM_VAL_MASK);
-	if (ret < 0)
+	if (ret < 0) {
+		printk("oscillator trim failed\n");
 		return ret;
+	}
 
-
-#if 0
+// TODO check what to do here
+#if 0 
 	/* start all channels */
 	ret = regmap_write(priv->regmap, TAS5711_SYS_CONTROL_2, 0x20);
 	if (ret < 0)
@@ -836,21 +792,49 @@ static int tas5711_probe(struct snd_soc_codec *codec)
 
 	/* mute all channels for now */
 	ret = regmap_write(priv->regmap, TAS5711_SOFT_MUTE,
-			   TAS5711_SOFT_MUTE_ALL);
-	if (ret < 0)
+			   /*TAS5711_SOFT_MUTE_ALL*/0x00);
+	if (ret < 0) {
+		printk("soft mute on all channels failed\n");
 		return ret;
+	}
+
+	/* set error status register to zero */
+	ret = regmap_write(priv->regmap, TAS5711_ERROR_STATUS,
+			   0x00);
+	if (ret < 0) {
+		printk("resetting error status register failed\n");
+		return ret;
+	}
+
+	/* set master volume to 0 dB */
+	ret = regmap_write(priv->regmap, TAS5711_MASTER_VOL,
+			   0x30);
+	if (ret < 0) {
+		printk("setting master volume to 0dB failed\n");
+		return ret;
+	}
+
+	/* start all channel (disable hard mute) */
+	ret = regmap_write(priv->regmap, TAS5711_SYS_CONTROL_2,
+			   0x00);
+	if (ret < 0) {
+		printk("starting all channels failed\n");
+		return ret;
+	}
+
 
 	return 0;
 }
 
 static int tas5711_remove(struct snd_soc_codec *codec)
 {
+	printk("++++++++++++++++++++++++++++ in Tas5711_remove() ++++++++++++++++++\n");
 	struct tas5711_private *priv = snd_soc_codec_get_drvdata(codec);
 
 	if (gpio_is_valid(priv->gpio_nreset))
 		/* Set codec to the reset state */
 		gpio_set_value(priv->gpio_nreset, 0);
-
+	printk("removing tas5711 successfull\n");
 	return 0;
 };
 
@@ -896,8 +880,10 @@ static int tas5711_i2c_probe(struct i2c_client *i2c,
 	int i, ret;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv)
+	if (!priv) {
+		printk("devm_kzalloc() failed");
 		return -ENOMEM;
+	}
 
 	priv->regmap = devm_regmap_init(dev, NULL, i2c, &tas5711_regmap);
 	if (IS_ERR(priv->regmap)) {
@@ -914,8 +900,9 @@ static int tas5711_i2c_probe(struct i2c_client *i2c,
 	}
 
 	if (gpio_is_valid(gpio_nreset))
-		if (devm_gpio_request(dev, gpio_nreset, "TAS5711 Reset"))
+		if (devm_gpio_request(dev, gpio_nreset, "TAS5711 Reset")) {
 			gpio_nreset = -EINVAL;
+		}
 
 	if (gpio_is_valid(gpio_nreset)) {
 		/* Reset codec - minimum assertion time is 400ns */
@@ -929,16 +916,30 @@ static int tas5711_i2c_probe(struct i2c_client *i2c,
 
 	priv->gpio_nreset = gpio_nreset;
 
+#if 0
 	/* The TAS5086 always returns 0x03 in its TAS5086_DEV_ID register */
 	ret = regmap_read(priv->regmap, TAS5711_DEV_ID, &i);
-	if (ret < 0)
+	if (ret < 0) {
+		printk ("regmap_read() failed\n");
 		return ret;
+	}
 
 	if (i != 0x3) {
 		dev_err(dev,
 			"Failed to identify TAS5711 codec (got %02x)\n", i);
 		return -ENODEV;
 	}
+#endif
+#if 0 // not needed
+	ret = regmap_read(priv->regmap, TAS5711_ERROR_STATUS, &i);
+	if (ret < 0) {
+		printk ("regmap_read() failed with code: %d\n", ret);
+		return ret;
+	}
+	else
+		printk ("Error status: %d\n", i);
+
+#endif
 
 	return snd_soc_register_codec(&i2c->dev, &soc_codec_dev_tas5711,
 		&tas5711_dai, 1);
@@ -946,7 +947,9 @@ static int tas5711_i2c_probe(struct i2c_client *i2c,
 
 static int tas5711_i2c_remove(struct i2c_client *i2c)
 {
+	printk("++++++++++++++ in tas5711_i2c_remove ++++++++++++++++++++\n");
 	snd_soc_unregister_codec(&i2c->dev);
+	printk("removing tas5711_i2c successfull\n");
 	return 0;
 }
 
