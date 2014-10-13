@@ -1,7 +1,10 @@
 #!/bin/bash
 
+# TODO add sd card device input (/dev/sdb)
+
 echo "Started installing Modules on Raspberry Pi SD Card"
 
+# TODO take time
 #take time
 #export TIME_S=$(date +"%S")
 #export TIME_M=$(date +"%M")
@@ -28,6 +31,12 @@ make ARCH=arm modules CROSS_COMPILE=/usr/bin/arm-linux-gnueabi- INSTALL_MOD_PATH
 
 echo "Installing Modules:"
 make ARCH=arm CROSS_COMPILE=/usr/bin/arm-linux-gnueabi- INSTALL_MOD_PATH=$EXT4_DIR modules_install
+
+# TODO enable kernel building and transfering with arguments
+#echo "Copying Kernel Image"
+#cp arch/arm/boot/Image ${FAT32_DIR}/kernel.img
+
+sync
 
 umount $FAT32_DIR
 umount $EXT4_DIR
