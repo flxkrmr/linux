@@ -52,11 +52,9 @@ static struct snd_soc_dai_link snd_rpi_tas5711_evb_dai[] = {
 	.name		= "TAS5711 EVB",
 	.stream_name	= "TI TAS5711 Evaluation Board",
 	.cpu_dai_name	= "bcm2708-i2s.0",
-	//.codec_dai_name	= "tas5711-hifi", 
-	.codec_dai_name	= "pcm5102a-hifi", 
+	.codec_dai_name	= "tas5711-hifi", 
 	.platform_name	= "bcm2708-i2s.0",
-	//.codec_name	= "tas5711-codec",
-	.codec_name	= "pcm5102a-codec",
+	.codec_name	= "tas5711-codec",
 	.dai_fmt	= SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
 				SND_SOC_DAIFMT_CBS_CFS,
 	.ops		= &snd_rpi_tas5711_evb_ops,

@@ -889,7 +889,7 @@ static const struct regmap_config tas5711_regmap = {
 static int tas5711_i2c_probe(struct i2c_client *i2c,
 			     const struct i2c_device_id *id)
 {
-	printk("+++++++++++++++++++int i2c probe+++++++++++++++++++++\n");
+	printk("+++++++++++++++++++in i2c probe+++++++++++++++++++++\n");
 	struct tas5711_private *priv;
 	struct device *dev = &i2c->dev;
 	int gpio_nreset = -EINVAL;
