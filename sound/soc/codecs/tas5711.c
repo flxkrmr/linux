@@ -6,7 +6,6 @@
  *		Copyright 2014
  *
  *	TODO:
- *		clear error status registers
  *		check really needed librarys 
  *		tas5711_register_size size 8 size 12??
  *		control parameters of TLV macros (line 512)
@@ -92,7 +91,8 @@
 /* Format Parameters */
 #define TAS5711_PCM_FORMATS (SNDRV_PCM_FMTBIT_S16_LE  |		\
 			     SNDRV_PCM_FMTBIT_S20_3LE |		\
-			     SNDRV_PCM_FMTBIT_S24_3LE)
+			     SNDRV_PCM_FMTBIT_S24_LE |		\
+			     SNDRV_PCM_FMTBIT_S32_LE)
 #if 0
 /*
  *	make list with snc_pcm_constraint_list()
@@ -543,12 +543,15 @@ static const struct snd_kcontrol_new tas5711_controls[] = {
 #endif
 };
 
+// not really needed
+#if 0
 /* Input mux controls */
 static const char *tas5711_dapm_sdin_texts[] =
 {
 	"SDIN-L", "SDIN-R"
 };
 
+//TODO check this, SOC_ENUM_SINGLE()???
 static const struct soc_enum tas5711_dapm_input_mux_enum[] = {
 	SOC_ENUM_SINGLE(TAS5711_INPUT_MUX, 20, 8, tas5711_dapm_sdin_texts),
 	SOC_ENUM_SINGLE(TAS5711_INPUT_MUX, 16, 8, tas5711_dapm_sdin_texts),
@@ -579,10 +582,10 @@ static const struct snd_kcontrol_new tas5711_dapm_output_mux_controls[] = {
 };
 
 static const struct snd_soc_dapm_widget tas5711_dapm_widgets[] = {
-	SND_SOC_DAPM_INPUT("SDIN-L"),
+	SND_SOC_DAPM_INPUT("SDIN-L"), //TODO this should be "Channel 1 input"
 	SND_SOC_DAPM_INPUT("SDIN-R"),
 
-	SND_SOC_DAPM_OUTPUT("OUT_A"),
+	SND_SOC_DAPM_OUTPUT("OUT_A"), // or this should be "Channel 1 Mux"
 	SND_SOC_DAPM_OUTPUT("OUT_B"),
 	SND_SOC_DAPM_OUTPUT("OUT_C"),
 	SND_SOC_DAPM_OUTPUT("OUT_D"),
@@ -663,7 +666,7 @@ static const struct snd_soc_dapm_route tas5711_dapm_routes[] = {
 
 };
 
-
+#endif
 static const struct snd_soc_dai_ops tas5711_dai_ops = {
 	.hw_params	= tas5711_hw_params,
 	.set_sysclk	= tas5711_set_dai_sysclk,
@@ -768,6 +771,16 @@ static int tas5711_probe(struct snd_soc_codec *codec)
 	}
 #endif
 
+//XXX writing to reserved registers. this is ok said the datasheet
+#if 1
+	/* enable Oscillator trim */
+	ret = regmap_write(priv->regmap, TAS5711_OSC_TRIM,
+			   0x00);
+	if (ret < 0) {
+		printk("setting up oscillator trim failed\n");
+		return ret;
+	}
+#else
 	/* enable factory trim */
 	ret = regmap_update_bits(priv->regmap, TAS5711_OSC_TRIM, 
 						TAS5711_OSC_TRIM_VAL(0), 
@@ -776,7 +789,7 @@ static int tas5711_probe(struct snd_soc_codec *codec)
 		printk("oscillator trim failed\n");
 		return ret;
 	}
-
+#endif
 // TODO check what to do here
 #if 0 
 	/* start all channels */
@@ -789,8 +802,16 @@ static int tas5711_probe(struct snd_soc_codec *codec)
 	if (ret < 0)
 		return ret;
 #endif
+	/* start all channel (disable hard mute) */
+	ret = regmap_write(priv->regmap, TAS5711_SYS_CONTROL_2,
+			   0x00);
+	if (ret < 0) {
+		printk("starting all channels failed\n");
+		return ret;
+	}
 
-	/* mute all channels for now */
+
+	/* unmute all channels for now */
 	ret = regmap_write(priv->regmap, TAS5711_SOFT_MUTE,
 			   /*TAS5711_SOFT_MUTE_ALL*/0x00);
 	if (ret < 0) {
@@ -814,23 +835,40 @@ static int tas5711_probe(struct snd_soc_codec *codec)
 		return ret;
 	}
 
-	/* start all channel (disable hard mute) */
-	ret = regmap_write(priv->regmap, TAS5711_SYS_CONTROL_2,
-			   0x00);
-	if (ret < 0) {
-		printk("starting all channels failed\n");
-		return ret;
-	}
-
 
 	return 0;
 }
 
 static int tas5711_remove(struct snd_soc_codec *codec)
 {
-	printk("++++++++++++++++++++++++++++ in Tas5711_remove() ++++++++++++++++++\n");
 	struct tas5711_private *priv = snd_soc_codec_get_drvdata(codec);
+	int ret;
 
+	/* mute all channels */
+	ret = regmap_write(priv->regmap, TAS5711_SOFT_MUTE,
+			   TAS5711_SOFT_MUTE_ALL);
+	if (ret < 0) {
+		printk("soft mute all channels failed\n");
+		return ret;
+	}
+
+	/* start all channel (disable hard mute) */
+	// TODO use macros here!
+	ret = regmap_update_bits(priv->regmap, TAS5711_SYS_CONTROL_2, 
+						0x40, 
+						0x40);
+	if (ret < 0) {
+		printk("stop all channels failed\n");
+		return ret;
+	}
+#if 0
+	ret = regmap_write(priv->regmap, TAS5711_SYS_CONTROL_2,
+			   0x0);
+	if (ret < 0) {
+		printk("stop all channels failed\n");
+		return ret;
+	}
+#endif
 	if (gpio_is_valid(priv->gpio_nreset))
 		/* Set codec to the reset state */
 		gpio_set_value(priv->gpio_nreset, 0);
@@ -844,10 +882,12 @@ static struct snd_soc_codec_driver soc_codec_dev_tas5711 = {
 	.resume			= tas5711_soc_resume,
 	.controls		= tas5711_controls,
 	.num_controls		= ARRAY_SIZE(tas5711_controls),
+#if 0
 	.dapm_widgets		= tas5711_dapm_widgets,
 	.num_dapm_widgets	= ARRAY_SIZE(tas5711_dapm_widgets),
 	.dapm_routes		= tas5711_dapm_routes,
 	.num_dapm_routes	= ARRAY_SIZE(tas5711_dapm_routes),
+#endif
 };
 
 static const struct i2c_device_id tas5711_i2c_id[] = {
